@@ -9,9 +9,8 @@ class Karyawan extends BaseController
 
     public function __construct()
     {
-    
+
         $this->karyawanModel = new \App\Models\Karyawan();
-        
     }
 
     public function index()
@@ -23,7 +22,7 @@ class Karyawan extends BaseController
         if (!$session->get('logged_in')) {
             return redirect()->to('/');
         }
-        
+
         $data = [
             'title' => 'Dashboard Karyawan',
             'total_karyawan' => count($this->karyawanModel->getKaryawanWRole("karyawan")),
@@ -32,9 +31,9 @@ class Karyawan extends BaseController
         ];
 
         return view('templates/header', $data)
-            .view('templates/sidebar', $data)
-            .view('employee/index', $data)
-            .view('templates/footer');
+            . view('templates/sidebar', $data)
+            . view('employee/index', $data)
+            . view('templates/footer');
     }
 
     public function manageEmployeeView()
@@ -45,7 +44,7 @@ class Karyawan extends BaseController
         if (!$session->get('logged_in')) {
             return redirect()->to('/');
         }
-        
+
         $data = [
             'title' => 'Kelola Karyawan',
             'karyawan' =>  $this->karyawanModel->getKaryawan(),
@@ -53,9 +52,9 @@ class Karyawan extends BaseController
         ];
 
         return view('templates/header', $data)
-            .view('templates/sidebar', $data)
-            .view('employee/manage-employee', $data)
-            .view('templates/footer');
+            . view('templates/sidebar', $data)
+            . view('employee/manage-employee', $data)
+            . view('templates/footer');
     }
 
     public function addEmployeeView()
@@ -73,9 +72,9 @@ class Karyawan extends BaseController
         ];
 
         return view('templates/header', $data)
-            .view('templates/sidebar', $data)
-            .view('employee/add-employee', $data)
-            .view('templates/footer');
+            . view('templates/sidebar', $data)
+            . view('employee/add-employee', $data)
+            . view('templates/footer');
     }
 
 
@@ -89,6 +88,18 @@ class Karyawan extends BaseController
             return redirect()->to('/');
         }
 
+        $user = $this->karyawanModel->getKaryawan($id);
+
+        $session->set('user_data', [
+            'id' => $user['id'],
+            'nama' => $user['nama'],
+            'nip' => $user['nip'],
+            'jabatan' => $user['jabatan'],
+            'role' => $user['role'],
+            'picture' => $user['picture'],
+            'email' => $user['email'],
+        ]);
+
         $data = [
             'title' => 'Detail Karyawan',
             'session' => $session->get('user_data'),
@@ -96,15 +107,14 @@ class Karyawan extends BaseController
         ];
 
         return view('templates/header', $data)
-            .view('templates/sidebar', $data)
-            .view('employee/detail-employee', $data)
-            .view('templates/footer');
-        
+            . view('templates/sidebar', $data)
+            . view('employee/detail-employee', $data)
+            . view('templates/footer');
     }
 
     public function addEmployeeAction()
     {
-        $nip = $this->request->getPost('nip'); 
+        $nip = $this->request->getPost('nip');
 
         $validationRule = [
             'picture' => [
@@ -118,13 +128,13 @@ class Karyawan extends BaseController
             ],
         ];
 
-        
+
         $options = [
             'cost' => 12
         ];
 
         if ($this->validate($validationRule)) {
-        
+
             $file = $this->request->getFile('picture');
             $img = uploadAndRenameFile($file, $nip);
             $data = [
@@ -136,7 +146,7 @@ class Karyawan extends BaseController
                 'email' => $this->request->getPost('email'),
                 'password' => password_hash($this->request->getPost('password'), PASSWORD_DEFAULT, $options)
             ];
-        }else{
+        } else {
             $data = [
                 'nama' => $this->request->getPost('nama'),
                 'nip' => $this->request->getPost('nip'),
@@ -146,7 +156,7 @@ class Karyawan extends BaseController
                 'password' => password_hash($this->request->getPost('password'), PASSWORD_DEFAULT, $options)
             ];
         }
-       
+
         // Menambah data karyawan ke database
         $this->karyawanModel->saveKaryawan($data);
 
@@ -156,7 +166,7 @@ class Karyawan extends BaseController
 
     public function editEmployeeAction($id)
     {
-        $nip = $this->request->getPost('nip'); 
+        $nip = $this->request->getPost('nip');
 
         $validationRule = [
             'picture' => [
@@ -171,7 +181,7 @@ class Karyawan extends BaseController
         ];
 
         if ($this->validate($validationRule)) {
-        
+
             $file = $this->request->getFile('picture');
             $img = uploadAndRenameFile($file, $nip);
             $data = [
@@ -182,7 +192,7 @@ class Karyawan extends BaseController
                 'picture' => $img,
                 'email' => $this->request->getPost('email')
             ];
-        }else{
+        } else {
             $data = [
                 'nama' => $this->request->getPost('nama'),
                 'nip' => $this->request->getPost('nip'),
@@ -191,12 +201,12 @@ class Karyawan extends BaseController
                 'email' => $this->request->getPost('email')
             ];
         }
-       
+
         // Menambah data karyawan ke database
         $this->karyawanModel->updateKaryawan($data, $id);
 
         // Redirect ke halaman daftar karyawan
-        return redirect()->to('/karyawan/detail/'.$id)->with('success', 'Data karyawan berhasil diubah');
+        return redirect()->to('/karyawan/detail/' . $id)->with('success', 'Data karyawan berhasil diubah');
     }
 
     public function deleteEmployeeAction($id)
@@ -207,16 +217,13 @@ class Karyawan extends BaseController
 
         // Menghapus data karyawan di database
         $this->karyawanModel->deleteKaryawan($id);
-        
+
         $gambar = $imgDb['picture'];
         // Menghapus file foto karyawan
-        $path = ROOTPATH.'public/uploads/karyawan/';
-        @unlink($path.$gambar);
+        $path = ROOTPATH . 'public/uploads/karyawan/';
+        @unlink($path . $gambar);
 
         // Redirect ke halaman daftar karyawan
         return redirect()->to('/karyawan/kelola')->with('success', 'Data karyawan berhasil dihapus');
     }
-
-
-
 }
